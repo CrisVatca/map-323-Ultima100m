@@ -120,7 +120,10 @@ public class UI {
                 getLargestConnectedComponentUI();
             } else if (option == 8) {
                 loop = false;
-            } else {
+            } else if (option == 9){
+                System.out.println("Task 1");
+            }
+            else {
                 System.out.println("Optiune inexistenta! Reincercati!");
             }
         }
