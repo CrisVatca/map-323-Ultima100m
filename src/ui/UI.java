@@ -5,7 +5,9 @@ import domain.Utilizator;
 import domain.validators.ValidationException;
 import service.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class UI {
@@ -32,7 +34,8 @@ public class UI {
             Long id1 = sc.nextLong();
             System.out.println("Dati id-ul celui de al doilea utilizator: ");
             Long id2 = sc.nextLong();
-            this.service.addFriend(id1, id2);
+            LocalDateTime datenow = LocalDateTime.now();
+            this.service.addFriend(id1, id2, datenow);
             System.out.println("Prietenia a fost creata!");
         } catch (IllegalArgumentException | NullPointerException | ValidationException e) {
             System.out.println(e.getMessage());
@@ -80,6 +83,18 @@ public class UI {
         }
     }
 
+    public void prieteniiUnuiUtilizatorUI(){
+        try{
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Dati id-ul utilizatorului pentru care doriti prietenii:");
+        Long id = sc.nextLong();
+        Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator = this.service.prieteniiUnuiUtilizator(id);
+        for(Utilizator u: prieteniiUnuiUtilizator.keySet())
+            System.out.println(u.getLastName()+" | "+u.getFirstName()+" | "+prieteniiUnuiUtilizator.get(u).toLocalDate());
+        } catch (IllegalArgumentException e){
+            System.out.println(e);
+        }
+    }
     private void printAllUI() {
         Iterable<Utilizator> users = this.service.getUsers();
         users.forEach(System.out::println);
@@ -94,7 +109,8 @@ public class UI {
         System.out.println("5. Stergere prieten");
         System.out.println("6. Determinarea numarului de comunitati");
         System.out.println("7. Determinarea celei mai sociabile comunitati");
-        System.out.println("8. Iesire");
+        System.out.println("8. Afisarea prieteniilor unui utilizator dat");
+        System.out.println("9. Iesire");
         System.out.println("-----------------------");
     }
 
@@ -119,9 +135,9 @@ public class UI {
             } else if (option == 7) {
                 getLargestConnectedComponentUI();
             } else if (option == 8) {
-                loop = false;
+                prieteniiUnuiUtilizatorUI();
             } else if (option == 9){
-                System.out.println("Task 1");
+                loop = false;
             }
             else {
                 System.out.println("Optiune inexistenta! Reincercati!");

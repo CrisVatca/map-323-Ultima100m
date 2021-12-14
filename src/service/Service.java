@@ -7,9 +7,9 @@ import jdk.jshell.execution.Util;
 import repository.Repository;
 import utils.Graph;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Service{
     private final Repository<Long, Utilizator> repoUtilizatori;
@@ -75,14 +75,14 @@ public class Service{
     }
 
 
-    public void addFriend(Long id1, Long id2) {
+    public void addFriend(Long id1, Long id2, LocalDateTime date) {
         try {
             if (!Objects.equals(id1, id2)) {
                 Utilizator utilizator1 = this.repoUtilizatori.findOne(id1);
                 Utilizator utilizator2 = this.repoUtilizatori.findOne(id2);
                 if(utilizator1 == null || utilizator2 == null)
                     throw new NullPointerException("Utilizatorul trebuie sa existe pentru a se crea o prietenie!");
-                Prietenie p = new Prietenie(id1,id2);
+                Prietenie p = new Prietenie(id1,id2,date);
                 this.repoPrietenie.save(p);
             }
         } catch (NullPointerException | ValidationException e) {
@@ -116,6 +116,31 @@ public class Service{
     public List<Utilizator> getLargestConnectedComponent() {
         Graph graph = new Graph(getUsers());
         return graph.getLargestConnectedComponent();
+    }
+
+    public Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator(Long id){
+        Utilizator u = this.repoUtilizatori.findOne(id);
+        List<Prietenie> prietenii = new ArrayList<>();
+        this.repoPrietenie.findAll().forEach(prietenii::add);
+
+        Map<Utilizator,LocalDateTime> prieteni = prietenii.stream()
+                .map(prietenie -> {
+                    Long idPrieten = 0L;
+                    if(prietenie.getIdU().equals(u.getId()))
+                        idPrieten = prietenie.getIdP();
+                    else if(prietenie.getIdP().equals(u.getId()))
+                        idPrieten = prietenie.getIdU();
+                    Map<Utilizator,LocalDateTime> mp = new HashMap<>();
+                    if(idPrieten.equals(0L))
+                        return mp;
+                    mp.put(this.repoUtilizatori.findOne(idPrieten),prietenie.getDate());
+                    return mp;
+                })
+                .flatMap(mp -> mp.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+
+        return prieteni;
     }
 
     public Utilizator getById(Long x) {
