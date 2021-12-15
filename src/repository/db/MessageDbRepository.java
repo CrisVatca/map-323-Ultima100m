@@ -51,7 +51,9 @@ public class MessageDbRepository implements Repository<Long, Message> {
                     Timestamp timestamp = resultSet.getTimestamp("data");
                     LocalDateTime data = timestamp.toLocalDateTime();
 
-                    mess = new Message(fromUser, users, message, data);
+                    Long reply = resultSet.getLong("reply");
+
+                    mess = new Message(fromUser, users, message, data,reply);
                     mess.setId(id);
                 }
             }
@@ -94,7 +96,9 @@ public class MessageDbRepository implements Repository<Long, Message> {
                 Timestamp timestamp = resultSet.getTimestamp("data");
                 LocalDateTime data = timestamp.toLocalDateTime();
 
-                Message mess = new Message(fromUser, users, message, data);
+                Long reply = resultSet.getLong("reply");
+
+                Message mess = new Message(fromUser, users, message, data, reply);
                 mess.setId(id);
                 messages.add(mess);
             }
@@ -131,6 +135,7 @@ public class MessageDbRepository implements Repository<Long, Message> {
             ps.setString(2, toUsers);
             ps.setString(3, entity.getMessage());
             ps.setObject(4, entity.getData());
+            ps.setLong(5, entity.getReply());
 
             ps.executeUpdate();
         } catch (SQLException e) {
