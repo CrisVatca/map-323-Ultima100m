@@ -143,6 +143,33 @@ public class Service{
         return prieteni;
     }
 
+    public Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizatorPerLuna(Long id, int luna){
+        Utilizator u = this.repoUtilizatori.findOne(id);
+        List<Prietenie> prietenii = new ArrayList<>();
+        this.repoPrietenie.findAll().forEach(prietenii::add);
+
+        Map<Utilizator,LocalDateTime> prieteni = prietenii.stream()
+                .filter(prietenie -> prietenie.getDate().toLocalDate().getMonthValue() == luna)
+                .map(prietenie -> {
+                    Long idPrieten = 0L;
+                    if(prietenie.getIdU().equals(u.getId()))
+                        idPrieten = prietenie.getIdP();
+                    else if(prietenie.getIdP().equals(u.getId()))
+                        idPrieten = prietenie.getIdU();
+                    Map<Utilizator,LocalDateTime> mp = new HashMap<>();
+                    if(idPrieten.equals(0L))
+                        return mp;
+                    mp.put(this.repoUtilizatori.findOne(idPrieten),prietenie.getDate());
+                    return mp;
+                })
+                .flatMap(mp -> mp.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+
+        return prieteni;
+
+    }
+
     public Utilizator getById(Long x) {
         return this.repoUtilizatori.setFriends(this.repoUtilizatori.findOne(x));
     }
