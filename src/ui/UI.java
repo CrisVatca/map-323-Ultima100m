@@ -1,10 +1,10 @@
 package ui;
 
-import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.ValidationException;
 import service.Service;
 
+import java.security.KeyException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -80,6 +80,39 @@ public class UI {
         }
     }
 
+    private void invitatieUI() {
+        System.out.println("Selectati optiunea:\n1.Trimite o cerere de prietenie\n2.Accepta/Refuza o cerere de prietenie");
+        this.service.getCereri().forEach(System.out::println);
+
+        System.out.println("\n\nOptiunea:");
+        Scanner sc = new Scanner(System.in);
+        Integer optiune = sc.nextInt();
+        try {
+            if (optiune == 1) {
+                System.out.println("De la utilizatorul cu id-ul:");
+                Long idFrom = sc.nextLong();
+                System.out.println("La utilizatorul cu id-ul:");
+                Long idTo = sc.nextLong();
+                this.service.trimiteCerere(idFrom, idTo);
+            } else if (optiune == 2) {
+                System.out.println("De la utilizatorul cu id-ul:");
+                Long idFrom = sc.nextLong();
+                System.out.println("La utilizatorul cu id-ul:");
+                Long idTo = sc.nextLong();
+                System.out.println("1.Accepta\n2.Refuza");
+                Integer optiune2 = sc.nextInt();
+                if(optiune2 == 1)
+                    this.service.raspundereCerere(idFrom,idTo,true);
+                else if(optiune2 == 2)
+                    this.service.raspundereCerere(idFrom,idTo,false);
+
+            }
+        }
+        catch (KeyException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void printAllUI() {
         Iterable<Utilizator> users = this.service.getUsers();
         users.forEach(System.out::println);
@@ -94,7 +127,8 @@ public class UI {
         System.out.println("5. Stergere prieten");
         System.out.println("6. Determinarea numarului de comunitati");
         System.out.println("7. Determinarea celei mai sociabile comunitati");
-        System.out.println("8. Iesire");
+        System.out.println("8. Trimiterea unei cereri de prietenie sau raspunderea la una");
+        System.out.println("9. Iesire");
         System.out.println("-----------------------");
     }
 
@@ -119,6 +153,8 @@ public class UI {
             } else if (option == 7) {
                 getLargestConnectedComponentUI();
             } else if (option == 8) {
+                invitatieUI();
+            } else if (option == 9) {
                 loop = false;
             } else {
                 System.out.println("Optiune inexistenta! Reincercati!");

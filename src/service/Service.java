@@ -1,12 +1,13 @@
 package service;
 
+import domain.Cerere;
 import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.ValidationException;
-import jdk.jshell.execution.Util;
 import repository.Repository;
 import utils.Graph;
 
+import java.security.KeyException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -14,10 +15,12 @@ import java.util.Objects;
 public class Service{
     private final Repository<Long, Utilizator> repoUtilizatori;
     private final Repository<Long, Prietenie> repoPrietenie;
+    private final Repository<Long, Cerere> repoCerere;
 
-    public Service(Repository<Long, Utilizator> repoUtilizatori, Repository<Long, Prietenie> repoPrietenie) {
+    public Service(Repository<Long, Utilizator> repoUtilizatori, Repository<Long, Prietenie> repoPrietenie, Repository<Long, Cerere> repoCerere) {
         this.repoUtilizatori = repoUtilizatori;
         this.repoPrietenie = repoPrietenie;
+        this.repoCerere = repoCerere;
     }
 
     public void addUser(String firstName, String lastName) {
@@ -106,6 +109,47 @@ public class Service{
             }
         if( id != 0L)
             this.repoPrietenie.delete(id);
+    }
+
+    public void trimiteCerere(Long idFrom, Long idTo) throws KeyException {
+
+        for(Cerere cerere: this.repoCerere.findAll())
+            if((cerere.getIdFrom().equals(idFrom) && cerere.getIdTo().equals(idTo)) || (cerere.getIdFrom().equals(idTo) && cerere.getIdTo().equals(idFrom)))
+                throw new KeyException("Cererea de prietenie exista deja!");
+
+        Utilizator utilizator1 = this.repoUtilizatori.findOne(idFrom);
+        Utilizator utilizator2 = this.repoUtilizatori.findOne(idTo);
+        if(utilizator1 == null || utilizator2 == null)
+            throw new NullPointerException("Utilizatorii trebuie sa existe!");
+
+        Cerere cerere = new Cerere(idFrom,idTo,"pending");
+        this.repoCerere.save(cerere);
+    }
+
+    public void raspundereCerere(Long idFrom, Long idTo,boolean accepted) throws KeyException {
+
+        Cerere cererePrietenie = null;
+
+        for(Cerere cerere: this.repoCerere.findAll())
+            if(cerere.getIdFrom().equals(idFrom) && cerere.getIdTo().equals(idTo))
+                cererePrietenie = cerere;
+
+        if(cererePrietenie == null)
+            throw new NullPointerException("Cererea nu exista!");
+
+        if(accepted)
+        {
+            cererePrietenie.setStatus("approved");
+            addFriend(idFrom,idTo);
+        }
+        else
+            cererePrietenie.setStatus("rejected");
+
+        this.repoCerere.update(cererePrietenie);
+    }
+
+    public Iterable<Cerere> getCereri(){
+        return this.repoCerere.findAll();
     }
 
     public int getNrOfConnectedComponents() {
