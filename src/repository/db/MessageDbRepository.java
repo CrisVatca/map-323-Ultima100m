@@ -12,6 +12,7 @@ public class MessageDbRepository implements Repository<Long, Message> {
     private String url;
     private String username;
     private String password;
+    private Repository<Long,Utilizator> repoUtilizatori;
 
     public MessageDbRepository(String url, String username, String password) {
         this.url = url;
@@ -21,43 +22,28 @@ public class MessageDbRepository implements Repository<Long, Message> {
 
     @Override
     public Message findOne(Long aLong) {
+
+        String sql = "select * from messages where id = ?";
         Message mess = null;
         try (Connection connection = DriverManager.getConnection(url, username, password);
-             PreparedStatement statement = connection.prepareStatement
-                     ("SELECT * from messages");
+             PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
                 Long id = resultSet.getLong("id");
-                if(Objects.equals(aLong, id)){
-                    String  from = resultSet.getString("from_user");
-                    String[] fromSplit = from.split(",");
-                    Long idUser = Long.parseLong(fromSplit[0]);
-                    Utilizator fromUser = new Utilizator(fromSplit[1],fromSplit[2]);
-                    fromUser.setId(idUser);
+                Long from = resultSet.getLong("from_user");
+                Long to = resultSet.getLong("to_user");
 
-                    String to = resultSet.getString("to_user");
-                    String[] toUsers = to.split(";");
-                    List<Utilizator> users = new ArrayList<>();
-                    for(int i=0;i<toUsers.length;i++){
-                        String[] toUsersSplit = toUsers[i].split(",");
-                        Long idUser1 = Long.parseLong(toUsersSplit[0]);
-                        Utilizator toUser = new Utilizator(toUsersSplit[1],toUsersSplit[2]);
-                        toUser.setId(idUser1);
-                        users.add(toUser);
-                    }
+                String message = resultSet.getString("message");
+                Timestamp timestamp = resultSet.getTimestamp("data");
+                LocalDateTime data = timestamp.toLocalDateTime();
 
-                    String message = resultSet.getString("message");
-                    Timestamp timestamp = resultSet.getTimestamp("data");
-                    LocalDateTime data = timestamp.toLocalDateTime();
+                Long reply = resultSet.getLong("reply");
 
-                    Long reply = resultSet.getLong("reply");
-
-                    mess = new Message(fromUser, users, message, data,reply);
-                    mess.setId(id);
+                mess = new Message(from, to, message, data, reply);
+                mess.setId(id);
+                return mess;
                 }
-            }
-            return mess;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -75,30 +61,20 @@ public class MessageDbRepository implements Repository<Long, Message> {
             while (resultSet.next()) {
                 Long id = resultSet.getLong("id");
 
-                String  from = resultSet.getString("from_user");
-                String[] fromSplit = from.split(",");
-                Long idUser = Long.parseLong(fromSplit[0]);
-                Utilizator fromUser = new Utilizator(fromSplit[1],fromSplit[2]);
-                fromUser.setId(idUser);
-
-                String to = resultSet.getString("to_user");
-                String[] toUsers = to.split(";");
-                List<Utilizator> users = new ArrayList<>();
-                for(int i=0;i<toUsers.length;i++){
-                    String[] toUsersSplit = toUsers[i].split(",");
-                    Long idUser1 = Long.parseLong(toUsersSplit[0]);
-                    Utilizator toUser = new Utilizator(toUsersSplit[1],toUsersSplit[2]);
-                    toUser.setId(idUser1);
-                    users.add(toUser);
-                }
+                Long from = resultSet.getLong("from_user");
+                Long to = resultSet.getLong("to_user");
 
                 String message = resultSet.getString("message");
                 Timestamp timestamp = resultSet.getTimestamp("data");
                 LocalDateTime data = timestamp.toLocalDateTime();
 
                 Long reply = resultSet.getLong("reply");
+                /*Message reply1=null;
+                if(reply!=null){
+                    reply1=findOne(Long.parseLong(reply));
+                }*/
 
-                Message mess = new Message(fromUser, users, message, data, reply);
+                Message mess = new Message(from, to, message, data, reply);
                 mess.setId(id);
                 messages.add(mess);
             }
@@ -116,26 +92,15 @@ public class MessageDbRepository implements Repository<Long, Message> {
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
-            String fromUser = "";
-            fromUser += entity.getFrom().getId() + "," + entity.getFrom().getFirstName() + "," +
-                    entity.getFrom().getLastName();
+            ps.setLong(1, entity.getFrom());
 
-            ps.setString(1, fromUser);
-
-            String toUsers = "";
-            for(int i=0;i<entity.getTo().size();i++){
-                if(i==entity.getTo().size()-1)
-                    toUsers += entity.getTo().get(i).getId() + "," + entity.getTo().get(i).getFirstName() + "," +
-                            entity.getTo().get(i).getLastName();
-                else
-                    toUsers += entity.getTo().get(i).getId() + "," + entity.getTo().get(i).getFirstName() + "," +
-                            entity.getTo().get(i).getLastName() + ";";
-            }
-
-            ps.setString(2, toUsers);
+            ps.setLong(2, entity.getTo());
             ps.setString(3, entity.getMessage());
             ps.setObject(4, entity.getData());
-            ps.setLong(5, entity.getReply());
+
+            if(entity.getReply()!=null && entity.getReply()!=0)
+                ps.setLong(5,entity.getReply());
+            else ps.setLong(5,0);
 
             ps.executeUpdate();
         } catch (SQLException e) {

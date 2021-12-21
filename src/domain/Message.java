@@ -4,13 +4,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class Message extends Entity<Long>{
-    private Utilizator from;
-    private List<Utilizator> to;
+    private Long from;
+    private Long to;
     private String message;
     private LocalDateTime data;
     private Long reply;
 
-    public Message(Utilizator from, List<Utilizator> to, String message, LocalDateTime data, Long reply) {
+    public Message(Long from, Long to, String message, LocalDateTime data,Long reply) {
         this.from = from;
         this.to = to;
         this.message = message;
@@ -26,22 +26,21 @@ public class Message extends Entity<Long>{
         this.reply = reply;
     }
 
-    public Utilizator getFrom() {
+    public Long getFrom() {
         return from;
     }
 
-    public void setFrom(Utilizator from) {
+    public void setFrom(Long from) {
         this.from = from;
     }
 
-    public List<Utilizator> getTo() {
+    public Long getTo() {
         return to;
     }
 
-    public void setTo(List<Utilizator> to) {
+    public void setTo(Long to) {
         this.to = to;
     }
-
     public String getMessage() {
         return message;
     }

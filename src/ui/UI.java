@@ -1,10 +1,12 @@
 package ui;
 
+import domain.Message;
 import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.ValidationException;
 import service.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
 
@@ -85,6 +87,60 @@ public class UI {
         users.forEach(System.out::println);
     }
 
+    private void addMessageUI(){
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Id-ul utilizatorului from: ");
+        Long idFrom = sc.nextLong();
+        System.out.println("Id-ul utilizatorului to: ");
+        Long idTo = sc.nextLong();
+        System.out.println("Mesajul:");
+        String mesaj = sc.nextLine();
+        LocalDateTime dateTime = LocalDateTime.now();
+        System.out.println("Id-ul mesajului reply: ");
+        Long idReply = sc.nextLong();
+        this.service.addMessage(idFrom,idTo,mesaj,dateTime,idReply);
+        System.out.println("Mesajul a fost adaugat!");
+    }
+
+    private void deleteMessageUI(){
+        try {
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Dati id-ul mesajului de sters: ");
+            Long id = sc.nextLong();
+            this.service.deleteMessage(id);
+            System.out.println("Mesajul a fost sters!");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void allMessagesUI(){
+        service.getAllMessages().forEach(System.out::println);
+    }
+
+    public  void conversatiiUI(){
+        Scanner S = new Scanner(System.in);
+        try {
+            System.out.println("id1=: ");
+            Long id1;
+            id1 = S.nextLong();
+            System.out.println("id2=: ");
+            Long id2;
+            id2 = S.nextLong();
+            Utilizator u1 = service.getById(id1);
+            Utilizator u2 = service.getById(id2);
+
+            List<Message> lista = service.conversatii(u1,u2);
+
+            for(Message message:lista){
+                System.out.println("Utilizator from: " + message.getFrom() + " : " + message.getMessage());
+            }
+
+        } catch (ValidationException e) {
+            System.out.println(e.toString());
+        }
+    }
+
     private void menuPrint() {
         System.out.println("Selectati optiunea: ");
         System.out.println("1. Adaugare utilizator");
@@ -92,9 +148,13 @@ public class UI {
         System.out.println("3. Afisare utilizatori");
         System.out.println("4. Adaugare prieten");
         System.out.println("5. Stergere prieten");
-        System.out.println("6. Determinarea numarului de comunitati");
-        System.out.println("7. Determinarea celei mai sociabile comunitati");
-        System.out.println("8. Iesire");
+        System.out.println("6. Adaugare mesaj");
+        System.out.println("7. Stergere mesaj");
+        System.out.println("8. Afisare mesaje");
+        System.out.println("9. Determinarea numarului de comunitati");
+        System.out.println("10. Determinarea celei mai sociabile comunitati");
+        System.out.println("11. Mesajele dintre doi utilizatori");
+        System.out.println("0. Iesire");
         System.out.println("-----------------------");
     }
 
@@ -115,10 +175,18 @@ public class UI {
             } else if (option == 5) {
                 deleteFriendUI();
             } else if (option == 6) {
-                getNrOfConnectedComponentsUI();
+                addMessageUI();
             } else if (option == 7) {
-                getLargestConnectedComponentUI();
+                deleteMessageUI();
             } else if (option == 8) {
+                allMessagesUI();
+            } else if (option == 9) {
+                getNrOfConnectedComponentsUI();
+            } else if (option == 10) {
+                getLargestConnectedComponentUI();
+            } else if (option == 11) {
+                conversatiiUI();
+            } else if (option == 0) {
                 loop = false;
             } else {
                 System.out.println("Optiune inexistenta! Reincercati!");
