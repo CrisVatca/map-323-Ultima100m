@@ -149,7 +149,7 @@ public class Service{
         if(accepted)
         {
             cererePrietenie.setStatus("approved");
-            addFriend(idFrom,idTo);
+            addFriend(idFrom,idTo,LocalDateTime.now());
         }
         else
             cererePrietenie.setStatus("rejected");
