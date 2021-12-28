@@ -1,7 +1,6 @@
 package ui;
 
 import domain.Message;
-import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.ValidationException;
 import service.Service;
@@ -88,11 +87,13 @@ public class UI {
     }
 
     private void addMessageUI(){
+        printAllUI();
+        try{
         Scanner sc = new Scanner(System.in);
         System.out.println("Id-ul utilizatorului from: ");
-        Long idFrom = sc.nextLong();
+        Long idFrom = Long.parseLong(sc.nextLine());
         System.out.println("Id-ul utilizatorului to: ");
-        Long idTo = sc.nextLong();
+        Long idTo = Long.parseLong(sc.nextLine());
         System.out.println("Mesajul:");
         String mesaj = sc.nextLine();
         LocalDateTime dateTime = LocalDateTime.now();
@@ -100,6 +101,9 @@ public class UI {
         Long idReply = sc.nextLong();
         this.service.addMessage(idFrom,idTo,mesaj,dateTime,idReply);
         System.out.println("Mesajul a fost adaugat!");
+        } catch (ValidationException ve){
+            System.out.println(ve.getMessage());
+        }
     }
 
     private void deleteMessageUI(){
@@ -127,6 +131,8 @@ public class UI {
             System.out.println("id2=: ");
             Long id2;
             id2 = S.nextLong();
+            if(service.getById(id1) == null || service.getById(id2) == null)
+                throw new NullPointerException("Utilizatorul trebuie sa existe!");
             Utilizator u1 = service.getById(id1);
             Utilizator u2 = service.getById(id2);
 
@@ -136,8 +142,8 @@ public class UI {
                 System.out.println("Utilizator from: " + message.getFrom() + " : " + message.getMessage());
             }
 
-        } catch (ValidationException e) {
-            System.out.println(e.toString());
+        } catch (ValidationException | NullPointerException e) {
+            System.out.println(e.getMessage());
         }
     }
 

@@ -134,8 +134,14 @@ public class Service{
         Message message1 = new Message(from,to,message,data,reply);
         repoMessage.save(message1);
     }
-    public void deleteMessage(long id){
+    public void deleteMessage(Long id){
         repoMessage.delete(id);
+    }
+
+    public void updateMessage(Long id, Long from, Long to, String messageText, LocalDateTime date, Long idReplay) {
+        Message message = new Message(from, to, messageText, date, idReplay);
+        message.setId(id);
+        this.repoMessage.update(message);
     }
 
     public Iterable<Message> getAllMessages() {
