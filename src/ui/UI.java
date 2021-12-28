@@ -91,10 +91,26 @@ public class UI {
         Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator = this.service.prieteniiUnuiUtilizator(id);
         for(Utilizator u: prieteniiUnuiUtilizator.keySet())
             System.out.println(u.getLastName()+" | "+u.getFirstName()+" | "+prieteniiUnuiUtilizator.get(u).toLocalDate());
-        } catch (IllegalArgumentException e){
-            System.out.println(e);
+        } catch (IllegalArgumentException | NullPointerException e){
+            System.out.println(e.getMessage());
         }
     }
+
+    public void prieteniiUnuiUtilizatorPerLunaUI(){
+        try{
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Dati id-ul utilizatorului pentru care doriti prietenii:");
+            Long id = sc.nextLong();
+            System.out.println("Dati luna(1-12) pentru care se vor afisa prietenii:");
+            int luna = sc.nextInt();
+            Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator = this.service.prieteniiUnuiUtilizatorPerLuna(id,luna);
+            for(Utilizator u: prieteniiUnuiUtilizator.keySet())
+                System.out.println(u.getLastName()+" | "+u.getFirstName()+" | "+prieteniiUnuiUtilizator.get(u).toLocalDate());
+        } catch (IllegalArgumentException | NullPointerException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
     private void printAllUI() {
         Iterable<Utilizator> users = this.service.getUsers();
         users.forEach(System.out::println);
@@ -110,7 +126,8 @@ public class UI {
         System.out.println("6. Determinarea numarului de comunitati");
         System.out.println("7. Determinarea celei mai sociabile comunitati");
         System.out.println("8. Afisarea prieteniilor unui utilizator dat");
-        System.out.println("9. Iesire");
+        System.out.println("9. Afisarea prieteniilor unui utilizator dat create intr-o anumita luna");
+        System.out.println("0. Iesire");
         System.out.println("-----------------------");
     }
 
@@ -137,6 +154,8 @@ public class UI {
             } else if (option == 8) {
                 prieteniiUnuiUtilizatorUI();
             } else if (option == 9){
+                prieteniiUnuiUtilizatorPerLunaUI();
+            } else if (option == 0){
                 loop = false;
             }
             else {
