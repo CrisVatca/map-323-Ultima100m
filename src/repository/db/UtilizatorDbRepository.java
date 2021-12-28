@@ -104,6 +104,8 @@ public class UtilizatorDbRepository implements Repository<Long, Utilizator> {
 
     @Override
     public Utilizator setFriends(Utilizator utilizator) {
+        if(utilizator == null)
+            return utilizator;
         Long id = utilizator.getId();
         try (Connection connection = DriverManager.getConnection(url, username, password)) {
             String sql2 = "SELECT idu FROM prietenie WHERE idp = ?";

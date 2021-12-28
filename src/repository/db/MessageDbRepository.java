@@ -1,7 +1,9 @@
 package repository.db;
 
 import domain.Message;
+import domain.Prietenie;
 import domain.Utilizator;
+import domain.validators.Validator;
 import repository.Repository;
 
 import java.sql.*;
@@ -13,11 +15,13 @@ public class MessageDbRepository implements Repository<Long, Message> {
     private String username;
     private String password;
     private Repository<Long,Utilizator> repoUtilizatori;
+    private Validator<Message> validator;
 
-    public MessageDbRepository(String url, String username, String password) {
+    public MessageDbRepository(String url, String username, String password, Validator<Message> validator) {
         this.url = url;
         this.username = username;
         this.password = password;
+        this.validator = validator;
     }
 
     @Override
@@ -52,7 +56,7 @@ public class MessageDbRepository implements Repository<Long, Message> {
 
     @Override
     public Iterable<Message> findAll() {
-        Set<Message> messages = new HashSet<>();
+        List<Message> messages = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement statement = connection.prepareStatement
                      ("SELECT * from messages");
@@ -87,7 +91,7 @@ public class MessageDbRepository implements Repository<Long, Message> {
 
     @Override
     public Message save(Message entity) {
-        String sql = "insert into messages (from_user, to_user, message, data) values (?, ?, ?, ?)";
+        String sql = "insert into messages (from_user, to_user, message, data, reply) values (?, ?, ?, ?, ?)";
 
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -127,7 +131,21 @@ public class MessageDbRepository implements Repository<Long, Message> {
 
     @Override
     public Message update(Message entity) {
-        return null;
+        String sql = "update messages set from_user = ?, to_user = ?,message = ?, data = ? where id = ?";
+
+        try (Connection connection = DriverManager.getConnection(url, username, password);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setLong(1, entity.getFrom());
+            ps.setLong(2, entity.getTo());
+            ps.setString(3, entity.getMessage());
+            ps.setString(4, entity.getData().toString());
+
+            ps.setLong(5, entity.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return entity;
     }
 
     @Override
