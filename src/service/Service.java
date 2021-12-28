@@ -1,6 +1,7 @@
 package service;
 
 import domain.Cerere;
+import domain.Message;
 import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.ValidationException;
@@ -8,18 +9,26 @@ import repository.Repository;
 import utils.Graph;
 
 import java.security.KeyException;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Service{
     private final Repository<Long, Utilizator> repoUtilizatori;
     private final Repository<Long, Prietenie> repoPrietenie;
+    private final Repository<Long, Message> repoMessage;
     private final Repository<Long, Cerere> repoCerere;
 
-    public Service(Repository<Long, Utilizator> repoUtilizatori, Repository<Long, Prietenie> repoPrietenie, Repository<Long, Cerere> repoCerere) {
+    public Service(Repository<Long, Utilizator> repoUtilizatori, Repository<Long, Prietenie> repoPrietenie,
+                   Repository<Long, Message> repoMessage, Repository<Long, Cerere> repoCerere) {
         this.repoUtilizatori = repoUtilizatori;
         this.repoPrietenie = repoPrietenie;
+        this.repoMessage = repoMessage;
         this.repoCerere = repoCerere;
     }
 
@@ -78,14 +87,14 @@ public class Service{
     }
 
 
-    public void addFriend(Long id1, Long id2) {
+    public void addFriend(Long id1, Long id2, LocalDateTime date) {
         try {
             if (!Objects.equals(id1, id2)) {
                 Utilizator utilizator1 = this.repoUtilizatori.findOne(id1);
                 Utilizator utilizator2 = this.repoUtilizatori.findOne(id2);
                 if(utilizator1 == null || utilizator2 == null)
                     throw new NullPointerException("Utilizatorul trebuie sa existe pentru a se crea o prietenie!");
-                Prietenie p = new Prietenie(id1,id2);
+                Prietenie p = new Prietenie(id1,id2,date);
                 this.repoPrietenie.save(p);
             }
         } catch (NullPointerException | ValidationException e) {
@@ -162,7 +171,88 @@ public class Service{
         return graph.getLargestConnectedComponent();
     }
 
+    public Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator(Long id) {
+        try {
+            Utilizator u = this.repoUtilizatori.findOne(id);
+            List<Prietenie> prietenii = new ArrayList<>();
+            this.repoPrietenie.findAll().forEach(prietenii::add);
+
+            if (u == null)
+                throw new NullPointerException("Utilizatorul trebuie sa existe!");
+
+            Predicate<Prietenie> filterByUtilizator = prietenie -> u.getId().equals(prietenie.getIdU()) || u.getId().equals(prietenie.getIdP());
+
+            return prietenii.stream()
+                    .filter(filterByUtilizator)
+                    .map(prietenie -> {
+                        Long idPrieten = prietenie.getIdU() + prietenie.getIdP() - u.getId();
+                        return new AbstractMap.SimpleEntry<Utilizator, LocalDateTime>(getById(idPrieten), prietenie.getDate());
+                    })
+                    .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+        } catch (NullPointerException e){
+            throw e;
+        }
+    }
+
+    public Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizatorPerLuna(Long id, int luna){
+        try {
+            Utilizator u = this.repoUtilizatori.findOne(id);
+            List<Prietenie> prietenii = new ArrayList<>();
+            this.repoPrietenie.findAll().forEach(prietenii::add);
+
+            if (u == null)
+                throw new NullPointerException("Utilizatorul trebuie sa existe!");
+
+            Predicate<Prietenie> filterByUtilizator = prietenie -> u.getId().equals(prietenie.getIdU()) || u.getId().equals(prietenie.getIdP());
+            Predicate<Prietenie> filterByLuna = prietenie -> prietenie.getDate().toLocalDate().getMonthValue() == luna;
+
+            return prietenii.stream()
+                    .filter(filterByUtilizator)
+                    .filter(filterByLuna)
+                    .map(prietenie -> {
+                        Long idPrieten = prietenie.getIdU() + prietenie.getIdP() - u.getId();
+                        return new AbstractMap.SimpleEntry<Utilizator, LocalDateTime>(getById(idPrieten), prietenie.getDate());
+                    })
+                    .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+        }
+        catch (NullPointerException e){
+            throw e;
+        }
+     }
+
+
     public Utilizator getById(Long x) {
         return this.repoUtilizatori.setFriends(this.repoUtilizatori.findOne(x));
+    }
+
+    public void addMessage(Long from, Long to, String message, LocalDateTime data, Long reply){
+
+        Message message1 = new Message(from,to,message,data,reply);
+        repoMessage.save(message1);
+    }
+    public void deleteMessage(Long id){
+        repoMessage.delete(id);
+    }
+
+    public void updateMessage(Long id, Long from, Long to, String messageText, LocalDateTime date, Long idReplay) {
+        Message message = new Message(from, to, messageText, date, idReplay);
+        message.setId(id);
+        this.repoMessage.update(message);
+    }
+
+    public Iterable<Message> getAllMessages() {
+        return repoMessage.findAll();
+    }
+    public List<Message> conversatii(Utilizator u1,Utilizator u2){
+        List<Message> list = new ArrayList<>();
+        for(Message message:repoMessage.findAll())
+            list.add(message);
+
+        List<Message> listaConversatii = list.stream()
+                .sorted(Comparator.comparing(Message::getData))
+                .filter(mesaj -> {return ((u1.getId().equals(mesaj.getFrom()) && mesaj.getTo().equals(u2.getId())) ||
+                        (u2.getId().equals(mesaj.getFrom()) && mesaj.getTo().equals(u1.getId())));})
+                .collect(Collectors.toList());
+        return listaConversatii;
     }
 }

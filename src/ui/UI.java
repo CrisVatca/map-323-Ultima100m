@@ -1,11 +1,15 @@
 package ui;
 
+import domain.Message;
+import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.ValidationException;
 import service.Service;
 
 import java.security.KeyException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class UI {
@@ -32,7 +36,8 @@ public class UI {
             Long id1 = sc.nextLong();
             System.out.println("Dati id-ul celui de al doilea utilizator: ");
             Long id2 = sc.nextLong();
-            this.service.addFriend(id1, id2);
+            LocalDateTime datenow = LocalDateTime.now();
+            this.service.addFriend(id1, id2, datenow);
             System.out.println("Prietenia a fost creata!");
         } catch (IllegalArgumentException | NullPointerException | ValidationException e) {
             System.out.println(e.getMessage());
@@ -113,9 +118,98 @@ public class UI {
         }
     }
 
+    public void prieteniiUnuiUtilizatorUI(){
+        try{
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Dati id-ul utilizatorului pentru care doriti prietenii:");
+        Long id = sc.nextLong();
+        Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator = this.service.prieteniiUnuiUtilizator(id);
+        for(Utilizator u: prieteniiUnuiUtilizator.keySet())
+            System.out.println(u.getLastName()+" | "+u.getFirstName()+" | "+prieteniiUnuiUtilizator.get(u).toLocalDate());
+        } catch (IllegalArgumentException | NullPointerException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void prieteniiUnuiUtilizatorPerLunaUI(){
+        try{
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Dati id-ul utilizatorului pentru care doriti prietenii:");
+            Long id = sc.nextLong();
+            System.out.println("Dati luna(1-12) pentru care se vor afisa prietenii:");
+            int luna = sc.nextInt();
+            Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator = this.service.prieteniiUnuiUtilizatorPerLuna(id,luna);
+            for(Utilizator u: prieteniiUnuiUtilizator.keySet())
+                System.out.println(u.getLastName()+" | "+u.getFirstName()+" | "+prieteniiUnuiUtilizator.get(u).toLocalDate());
+        } catch (IllegalArgumentException | NullPointerException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
     private void printAllUI() {
         Iterable<Utilizator> users = this.service.getUsers();
         users.forEach(System.out::println);
+    }
+
+    private void addMessageUI(){
+        printAllUI();
+        try{
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Id-ul utilizatorului from: ");
+        Long idFrom = Long.parseLong(sc.nextLine());
+        System.out.println("Id-ul utilizatorului to: ");
+        Long idTo = Long.parseLong(sc.nextLine());
+        System.out.println("Mesajul:");
+        String mesaj = sc.nextLine();
+        LocalDateTime dateTime = LocalDateTime.now();
+        System.out.println("Id-ul mesajului reply: ");
+        Long idReply = sc.nextLong();
+        this.service.addMessage(idFrom,idTo,mesaj,dateTime,idReply);
+        System.out.println("Mesajul a fost adaugat!");
+        } catch (ValidationException ve){
+            System.out.println(ve.getMessage());
+        }
+    }
+
+    private void deleteMessageUI(){
+        try {
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Dati id-ul mesajului de sters: ");
+            Long id = sc.nextLong();
+            this.service.deleteMessage(id);
+            System.out.println("Mesajul a fost sters!");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void allMessagesUI(){
+        service.getAllMessages().forEach(System.out::println);
+    }
+
+    public  void conversatiiUI(){
+        Scanner S = new Scanner(System.in);
+        try {
+            System.out.println("id1=: ");
+            Long id1;
+            id1 = S.nextLong();
+            System.out.println("id2=: ");
+            Long id2;
+            id2 = S.nextLong();
+            if(service.getById(id1) == null || service.getById(id2) == null)
+                throw new NullPointerException("Utilizatorul trebuie sa existe!");
+            Utilizator u1 = service.getById(id1);
+            Utilizator u2 = service.getById(id2);
+
+            List<Message> lista = service.conversatii(u1,u2);
+
+            for(Message message:lista){
+                System.out.println("Utilizator from: " + message.getFrom() + " : " + message.getMessage());
+            }
+
+        } catch (ValidationException | NullPointerException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void menuPrint() {
@@ -125,10 +219,16 @@ public class UI {
         System.out.println("3. Afisare utilizatori");
         System.out.println("4. Adaugare prieten");
         System.out.println("5. Stergere prieten");
-        System.out.println("6. Determinarea numarului de comunitati");
-        System.out.println("7. Determinarea celei mai sociabile comunitati");
-        System.out.println("8. Trimiterea unei cereri de prietenie sau raspunderea la una");
-        System.out.println("9. Iesire");
+        System.out.println("6. Adaugare mesaj");
+        System.out.println("7. Stergere mesaj");
+        System.out.println("8. Afisare mesaje");
+        System.out.println("9. Afisarea prieteniilor unui utilizator dat");
+        System.out.println("10. Afisarea prieteniilor unui utilizator dat create intr-o anumita luna");
+        System.out.println("11. Determinarea numarului de comunitati");
+        System.out.println("12. Determinarea celei mai sociabile comunitati");
+        System.out.println("13. Mesajele dintre doi utilizatori");
+        System.out.println("14. Trimiterea unei cereri de prietenie sau raspunderea la una");
+        System.out.println("0. Iesire");
         System.out.println("-----------------------");
     }
 
@@ -149,14 +249,27 @@ public class UI {
             } else if (option == 5) {
                 deleteFriendUI();
             } else if (option == 6) {
-                getNrOfConnectedComponentsUI();
+                addMessageUI();
             } else if (option == 7) {
-                getLargestConnectedComponentUI();
-            } else if (option == 8) {
-                invitatieUI();
+                deleteMessageUI();
+            } else if (option == 8){
+                allMessagesUI();
             } else if (option == 9) {
+                prieteniiUnuiUtilizatorUI();
+            } else if (option == 10){
+                prieteniiUnuiUtilizatorPerLunaUI();
+            } else if (option == 11) {
+                getNrOfConnectedComponentsUI();
+            } else if (option == 12) {
+                getLargestConnectedComponentUI();
+            } else if (option == 13) {
+                conversatiiUI();
+            } else if (option == 14) {
+                invitatieUI();
+            } else if (option == 0) {
                 loop = false;
-            } else {
+            }
+            else {
                 System.out.println("Optiune inexistenta! Reincercati!");
             }
         }

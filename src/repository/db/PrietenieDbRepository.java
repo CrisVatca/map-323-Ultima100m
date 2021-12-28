@@ -8,6 +8,7 @@ import repository.Repository;
 import repository.memory.InMemoryRepository;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class PrietenieDbRepository implements Repository<Long, Prietenie> {
@@ -59,8 +60,10 @@ public class PrietenieDbRepository implements Repository<Long, Prietenie> {
                 Long idu = resultSet.getLong("idu");
                 Long idp = resultSet.getLong("idp");
                 Long id = resultSet.getLong("id");
+                Timestamp timestamp = resultSet.getTimestamp("date");
+                LocalDateTime date = timestamp.toLocalDateTime();
 
-                Prietenie prietenie = new Prietenie(idu, idp);
+                Prietenie prietenie = new Prietenie(idu, idp, date);
                 prietenie.setId(id);
                 prietenii.add(prietenie);
             }
@@ -84,13 +87,14 @@ public class PrietenieDbRepository implements Repository<Long, Prietenie> {
             }
         }
 
-        String sql = "insert into prietenie (idu, idp) values (?,?)";
+        String sql = "insert into prietenie (idu, idp, date) values (?,?,?)";
 
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setLong(1, entity.getIdU());
             ps.setLong(2, entity.getIdP());
+            ps.setTimestamp(3, Timestamp.valueOf(entity.getDate()));
 
             ps.executeUpdate();
         } catch (SQLException e) {
