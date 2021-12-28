@@ -9,6 +9,7 @@ import utils.Graph;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Service{
@@ -123,24 +124,15 @@ public class Service{
         List<Prietenie> prietenii = new ArrayList<>();
         this.repoPrietenie.findAll().forEach(prietenii::add);
 
-        Map<Utilizator,LocalDateTime> prieteni = prietenii.stream()
+        Predicate<Prietenie> filterByUtilizator = prietenie -> u.getId().equals(prietenie.getIdU()) || u.getId().equals(prietenie.getIdP());
+
+        return prietenii.stream()
+                .filter(filterByUtilizator)
                 .map(prietenie -> {
-                    Long idPrieten = 0L;
-                    if(prietenie.getIdU().equals(u.getId()))
-                        idPrieten = prietenie.getIdP();
-                    else if(prietenie.getIdP().equals(u.getId()))
-                        idPrieten = prietenie.getIdU();
-                    Map<Utilizator,LocalDateTime> mp = new HashMap<>();
-                    if(idPrieten.equals(0L))
-                        return mp;
-                    mp.put(this.repoUtilizatori.findOne(idPrieten),prietenie.getDate());
-                    return mp;
+                    Long idPrieten = prietenie.getIdU() + prietenie.getIdP() - u.getId();
+                    return new AbstractMap.SimpleEntry<Utilizator,LocalDateTime>(getById(idPrieten),prietenie.getDate());
                 })
-                .flatMap(mp -> mp.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-
-        return prieteni;
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
 
     public Utilizator getById(Long x) {

@@ -62,7 +62,6 @@ public class PrietenieDbRepository implements Repository<Long, Prietenie> {
                 Long id = resultSet.getLong("id");
                 Timestamp timestamp = resultSet.getTimestamp("date");
                 LocalDateTime date = timestamp.toLocalDateTime();
-                System.out.println(date);
 
                 Prietenie prietenie = new Prietenie(idu, idp, date);
                 prietenie.setId(id);
@@ -88,7 +87,7 @@ public class PrietenieDbRepository implements Repository<Long, Prietenie> {
             }
         }
 
-        String sql = "insert into prietenie (idu, idp, data) values (?,?,?)";
+        String sql = "insert into prietenie (idu, idp, date) values (?,?,?)";
 
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement ps = connection.prepareStatement(sql)) {
