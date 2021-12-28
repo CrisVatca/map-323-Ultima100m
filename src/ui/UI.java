@@ -1,5 +1,6 @@
 package ui;
 
+import domain.Message;
 import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.ValidationException;
@@ -116,6 +117,67 @@ public class UI {
         users.forEach(System.out::println);
     }
 
+    private void addMessageUI(){
+        printAllUI();
+        try{
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Id-ul utilizatorului from: ");
+        Long idFrom = Long.parseLong(sc.nextLine());
+        System.out.println("Id-ul utilizatorului to: ");
+        Long idTo = Long.parseLong(sc.nextLine());
+        System.out.println("Mesajul:");
+        String mesaj = sc.nextLine();
+        LocalDateTime dateTime = LocalDateTime.now();
+        System.out.println("Id-ul mesajului reply: ");
+        Long idReply = sc.nextLong();
+        this.service.addMessage(idFrom,idTo,mesaj,dateTime,idReply);
+        System.out.println("Mesajul a fost adaugat!");
+        } catch (ValidationException ve){
+            System.out.println(ve.getMessage());
+        }
+    }
+
+    private void deleteMessageUI(){
+        try {
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Dati id-ul mesajului de sters: ");
+            Long id = sc.nextLong();
+            this.service.deleteMessage(id);
+            System.out.println("Mesajul a fost sters!");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void allMessagesUI(){
+        service.getAllMessages().forEach(System.out::println);
+    }
+
+    public  void conversatiiUI(){
+        Scanner S = new Scanner(System.in);
+        try {
+            System.out.println("id1=: ");
+            Long id1;
+            id1 = S.nextLong();
+            System.out.println("id2=: ");
+            Long id2;
+            id2 = S.nextLong();
+            if(service.getById(id1) == null || service.getById(id2) == null)
+                throw new NullPointerException("Utilizatorul trebuie sa existe!");
+            Utilizator u1 = service.getById(id1);
+            Utilizator u2 = service.getById(id2);
+
+            List<Message> lista = service.conversatii(u1,u2);
+
+            for(Message message:lista){
+                System.out.println("Utilizator from: " + message.getFrom() + " : " + message.getMessage());
+            }
+
+        } catch (ValidationException | NullPointerException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     private void menuPrint() {
         System.out.println("Selectati optiunea: ");
         System.out.println("1. Adaugare utilizator");
@@ -123,10 +185,13 @@ public class UI {
         System.out.println("3. Afisare utilizatori");
         System.out.println("4. Adaugare prieten");
         System.out.println("5. Stergere prieten");
-        System.out.println("6. Determinarea numarului de comunitati");
-        System.out.println("7. Determinarea celei mai sociabile comunitati");
-        System.out.println("8. Afisarea prieteniilor unui utilizator dat");
-        System.out.println("9. Afisarea prieteniilor unui utilizator dat create intr-o anumita luna");
+        System.out.println("6. Adaugare mesaj");
+        System.out.println("7. Stergere mesaj");
+        System.out.println("8. Afisare mesaje");
+        System.out.println("9. Afisarea prieteniilor unui utilizator dat");
+        System.out.println("10. Determinarea numarului de comunitati");
+        System.out.println("11. Determinarea celei mai sociabile comunitati");
+        System.out.println("12. Mesajele dintre doi utilizatori");
         System.out.println("0. Iesire");
         System.out.println("-----------------------");
     }
@@ -148,14 +213,20 @@ public class UI {
             } else if (option == 5) {
                 deleteFriendUI();
             } else if (option == 6) {
-                getNrOfConnectedComponentsUI();
+                addMessageUI();
             } else if (option == 7) {
-                getLargestConnectedComponentUI();
-            } else if (option == 8) {
+                deleteMessageUI();
+            } else if (option == 8){
+                allMessagesUI();
+            } else if (option == 9) {
                 prieteniiUnuiUtilizatorUI();
-            } else if (option == 9){
-                prieteniiUnuiUtilizatorPerLunaUI();
-            } else if (option == 0){
+            } else if (option == 10) {
+                getNrOfConnectedComponentsUI();
+            } else if (option == 11) {
+                getLargestConnectedComponentUI();
+            } else if (option == 12) {
+                conversatiiUI();
+            } else if (option == 0) {
                 loop = false;
             }
             else {

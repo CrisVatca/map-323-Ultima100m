@@ -1,5 +1,6 @@
 package service;
 
+import domain.Message;
 import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.ValidationException;
@@ -10,15 +11,22 @@ import utils.Graph;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Service{
     private final Repository<Long, Utilizator> repoUtilizatori;
     private final Repository<Long, Prietenie> repoPrietenie;
+    private final Repository<Long, Message> repoMessage;
 
-    public Service(Repository<Long, Utilizator> repoUtilizatori, Repository<Long, Prietenie> repoPrietenie) {
+    public Service(Repository<Long, Utilizator> repoUtilizatori, Repository<Long, Prietenie> repoPrietenie,
+                   Repository<Long, Message> repoMessage) {
         this.repoUtilizatori = repoUtilizatori;
         this.repoPrietenie = repoPrietenie;
+        this.repoMessage = repoMessage;
     }
 
     public void addUser(String firstName, String lastName) {
@@ -171,5 +179,36 @@ public class Service{
 
     public Utilizator getById(Long x) {
         return this.repoUtilizatori.setFriends(this.repoUtilizatori.findOne(x));
+    }
+
+    public void addMessage(Long from, Long to, String message, LocalDateTime data, Long reply){
+
+        Message message1 = new Message(from,to,message,data,reply);
+        repoMessage.save(message1);
+    }
+    public void deleteMessage(Long id){
+        repoMessage.delete(id);
+    }
+
+    public void updateMessage(Long id, Long from, Long to, String messageText, LocalDateTime date, Long idReplay) {
+        Message message = new Message(from, to, messageText, date, idReplay);
+        message.setId(id);
+        this.repoMessage.update(message);
+    }
+
+    public Iterable<Message> getAllMessages() {
+        return repoMessage.findAll();
+    }
+    public List<Message> conversatii(Utilizator u1,Utilizator u2){
+        List<Message> list = new ArrayList<>();
+        for(Message message:repoMessage.findAll())
+            list.add(message);
+
+        List<Message> listaConversatii = list.stream()
+                .sorted(Comparator.comparing(Message::getData))
+                .filter(mesaj -> {return ((u1.getId().equals(mesaj.getFrom()) && mesaj.getTo().equals(u2.getId())) ||
+                        (u2.getId().equals(mesaj.getFrom()) && mesaj.getTo().equals(u1.getId())));})
+                .collect(Collectors.toList());
+        return listaConversatii;
     }
 }
