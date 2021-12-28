@@ -189,9 +189,10 @@ public class UI {
         System.out.println("7. Stergere mesaj");
         System.out.println("8. Afisare mesaje");
         System.out.println("9. Afisarea prieteniilor unui utilizator dat");
-        System.out.println("10. Determinarea numarului de comunitati");
-        System.out.println("11. Determinarea celei mai sociabile comunitati");
-        System.out.println("12. Mesajele dintre doi utilizatori");
+        System.out.println("10. Afisarea prieteniilor unui utilizator dat create intr-o anumita luna");
+        System.out.println("11. Determinarea numarului de comunitati");
+        System.out.println("12. Determinarea celei mai sociabile comunitati");
+        System.out.println("13. Mesajele dintre doi utilizatori");
         System.out.println("0. Iesire");
         System.out.println("-----------------------");
     }
@@ -220,11 +221,13 @@ public class UI {
                 allMessagesUI();
             } else if (option == 9) {
                 prieteniiUnuiUtilizatorUI();
-            } else if (option == 10) {
-                getNrOfConnectedComponentsUI();
+            } else if (option == 10){
+                prieteniiUnuiUtilizatorPerLunaUI();
             } else if (option == 11) {
-                getLargestConnectedComponentUI();
+                getNrOfConnectedComponentsUI();
             } else if (option == 12) {
+                getLargestConnectedComponentUI();
+            } else if (option == 13) {
                 conversatiiUI();
             } else if (option == 0) {
                 loop = false;
