@@ -6,6 +6,7 @@ import domain.Utilizator;
 import domain.validators.ValidationException;
 import service.Service;
 
+import java.security.KeyException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,39 @@ public class UI {
         List<Utilizator> largestConnectedComponent = this.service.getLargestConnectedComponent();
         for (Utilizator utilizator : largestConnectedComponent) {
             System.out.println(utilizator);
+        }
+    }
+
+    private void invitatieUI() {
+        System.out.println("Selectati optiunea:\n1.Trimite o cerere de prietenie\n2.Accepta/Refuza o cerere de prietenie");
+        this.service.getCereri().forEach(System.out::println);
+
+        System.out.println("\n\nOptiunea:");
+        Scanner sc = new Scanner(System.in);
+        Integer optiune = sc.nextInt();
+        try {
+            if (optiune == 1) {
+                System.out.println("De la utilizatorul cu id-ul:");
+                Long idFrom = sc.nextLong();
+                System.out.println("La utilizatorul cu id-ul:");
+                Long idTo = sc.nextLong();
+                this.service.trimiteCerere(idFrom, idTo);
+            } else if (optiune == 2) {
+                System.out.println("De la utilizatorul cu id-ul:");
+                Long idFrom = sc.nextLong();
+                System.out.println("La utilizatorul cu id-ul:");
+                Long idTo = sc.nextLong();
+                System.out.println("1.Accepta\n2.Refuza");
+                Integer optiune2 = sc.nextInt();
+                if(optiune2 == 1)
+                    this.service.raspundereCerere(idFrom,idTo,true);
+                else if(optiune2 == 2)
+                    this.service.raspundereCerere(idFrom,idTo,false);
+
+            }
+        }
+        catch (KeyException e) {
+            e.printStackTrace();
         }
     }
 
@@ -193,6 +227,7 @@ public class UI {
         System.out.println("11. Determinarea numarului de comunitati");
         System.out.println("12. Determinarea celei mai sociabile comunitati");
         System.out.println("13. Mesajele dintre doi utilizatori");
+        System.out.println("14. Trimiterea unei cereri de prietenie sau raspunderea la una");
         System.out.println("0. Iesire");
         System.out.println("-----------------------");
     }
@@ -229,6 +264,8 @@ public class UI {
                 getLargestConnectedComponentUI();
             } else if (option == 13) {
                 conversatiiUI();
+            } else if (option == 14) {
+                invitatieUI();
             } else if (option == 0) {
                 loop = false;
             }
