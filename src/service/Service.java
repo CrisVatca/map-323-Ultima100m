@@ -7,9 +7,10 @@ import jdk.jshell.execution.Util;
 import repository.Repository;
 import utils.Graph;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Service{
     private final Repository<Long, Utilizator> repoUtilizatori;
@@ -75,14 +76,14 @@ public class Service{
     }
 
 
-    public void addFriend(Long id1, Long id2) {
+    public void addFriend(Long id1, Long id2, LocalDateTime date) {
         try {
             if (!Objects.equals(id1, id2)) {
                 Utilizator utilizator1 = this.repoUtilizatori.findOne(id1);
                 Utilizator utilizator2 = this.repoUtilizatori.findOne(id2);
                 if(utilizator1 == null || utilizator2 == null)
                     throw new NullPointerException("Utilizatorul trebuie sa existe pentru a se crea o prietenie!");
-                Prietenie p = new Prietenie(id1,id2);
+                Prietenie p = new Prietenie(id1,id2,date);
                 this.repoPrietenie.save(p);
             }
         } catch (NullPointerException | ValidationException e) {
@@ -116,6 +117,22 @@ public class Service{
     public List<Utilizator> getLargestConnectedComponent() {
         Graph graph = new Graph(getUsers());
         return graph.getLargestConnectedComponent();
+    }
+
+    public Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator(Long id){
+        Utilizator u = this.repoUtilizatori.findOne(id);
+        List<Prietenie> prietenii = new ArrayList<>();
+        this.repoPrietenie.findAll().forEach(prietenii::add);
+
+        Predicate<Prietenie> filterByUtilizator = prietenie -> u.getId().equals(prietenie.getIdU()) || u.getId().equals(prietenie.getIdP());
+
+        return prietenii.stream()
+                .filter(filterByUtilizator)
+                .map(prietenie -> {
+                    Long idPrieten = prietenie.getIdU() + prietenie.getIdP() - u.getId();
+                    return new AbstractMap.SimpleEntry<Utilizator,LocalDateTime>(getById(idPrieten),prietenie.getDate());
+                })
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
 
     public Utilizator getById(Long x) {

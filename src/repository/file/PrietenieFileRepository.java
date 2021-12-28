@@ -4,6 +4,7 @@ import domain.Prietenie;
 import domain.Utilizator;
 import domain.validators.Validator;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class PrietenieFileRepository extends AbstractFileRepository<Long, Prietenie>{
@@ -18,13 +19,14 @@ public class PrietenieFileRepository extends AbstractFileRepository<Long, Priete
     @Override
     public Prietenie extractEntity(List<String> attributes) {
         long currentId = Long.parseLong(attributes.get(0));
-
+        System.out.println(attributes);
         if (currentId > nextId) {
             nextId = currentId;
         }
         long id1 = Long.parseLong(attributes.get(1));
         long id2 = Long.parseLong(attributes.get(2));
-        Prietenie p = new Prietenie(id1, id2);
+        LocalDateTime date = LocalDateTime.parse(attributes.get(3));
+        Prietenie p = new Prietenie(id1, id2, date);
         p.setId(Long.parseLong(attributes.get(0)));
         return p;
     }
@@ -39,7 +41,8 @@ public class PrietenieFileRepository extends AbstractFileRepository<Long, Priete
 
     @Override
     public String createEntityAsString(Prietenie entity) {
-        return entity.getId().toString() + ";" + entity.getIdU().toString() + ";" + entity.getIdP().toString() + '\n';
+        return entity.getId().toString() + ";" + entity.getIdU().toString() + ";" + entity.getIdP().toString() +
+                ";" + entity.getDate().toString() +'\n';
     }
 
 }
