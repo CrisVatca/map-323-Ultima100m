@@ -127,21 +127,55 @@ public class Service{
         return graph.getLargestConnectedComponent();
     }
 
-    public Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator(Long id){
-        Utilizator u = this.repoUtilizatori.findOne(id);
-        List<Prietenie> prietenii = new ArrayList<>();
-        this.repoPrietenie.findAll().forEach(prietenii::add);
+    public Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizator(Long id) {
+        try {
+            Utilizator u = this.repoUtilizatori.findOne(id);
+            List<Prietenie> prietenii = new ArrayList<>();
+            this.repoPrietenie.findAll().forEach(prietenii::add);
 
-        Predicate<Prietenie> filterByUtilizator = prietenie -> u.getId().equals(prietenie.getIdU()) || u.getId().equals(prietenie.getIdP());
+            if (u == null)
+                throw new NullPointerException("Utilizatorul trebuie sa existe!");
 
-        return prietenii.stream()
-                .filter(filterByUtilizator)
-                .map(prietenie -> {
-                    Long idPrieten = prietenie.getIdU() + prietenie.getIdP() - u.getId();
-                    return new AbstractMap.SimpleEntry<Utilizator,LocalDateTime>(getById(idPrieten),prietenie.getDate());
-                })
-                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+            Predicate<Prietenie> filterByUtilizator = prietenie -> u.getId().equals(prietenie.getIdU()) || u.getId().equals(prietenie.getIdP());
+
+            return prietenii.stream()
+                    .filter(filterByUtilizator)
+                    .map(prietenie -> {
+                        Long idPrieten = prietenie.getIdU() + prietenie.getIdP() - u.getId();
+                        return new AbstractMap.SimpleEntry<Utilizator, LocalDateTime>(getById(idPrieten), prietenie.getDate());
+                    })
+                    .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+        } catch (NullPointerException e){
+            throw e;
+        }
     }
+
+    public Map<Utilizator,LocalDateTime> prieteniiUnuiUtilizatorPerLuna(Long id, int luna){
+        try {
+            Utilizator u = this.repoUtilizatori.findOne(id);
+            List<Prietenie> prietenii = new ArrayList<>();
+            this.repoPrietenie.findAll().forEach(prietenii::add);
+
+            if (u == null)
+                throw new NullPointerException("Utilizatorul trebuie sa existe!");
+
+            Predicate<Prietenie> filterByUtilizator = prietenie -> u.getId().equals(prietenie.getIdU()) || u.getId().equals(prietenie.getIdP());
+            Predicate<Prietenie> filterByLuna = prietenie -> prietenie.getDate().toLocalDate().getMonthValue() == luna;
+
+            return prietenii.stream()
+                    .filter(filterByUtilizator)
+                    .filter(filterByLuna)
+                    .map(prietenie -> {
+                        Long idPrieten = prietenie.getIdU() + prietenie.getIdP() - u.getId();
+                        return new AbstractMap.SimpleEntry<Utilizator, LocalDateTime>(getById(idPrieten), prietenie.getDate());
+                    })
+                    .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+        }
+        catch (NullPointerException e){
+            throw e;
+        }
+     }
+
 
     public Utilizator getById(Long x) {
         return this.repoUtilizatori.setFriends(this.repoUtilizatori.findOne(x));
