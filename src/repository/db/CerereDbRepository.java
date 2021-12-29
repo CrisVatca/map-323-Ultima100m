@@ -1,9 +1,11 @@
 package repository.db;
 
 import domain.Cerere;
+import domain.Prietenie;
 import repository.Repository;
 
 import java.sql.*;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -78,6 +80,17 @@ public class CerereDbRepository implements Repository<Long, Cerere> {
 
     @Override
     public Cerere delete(Long aLong) {
+        String sql = "delete from cerere where id=?";
+
+        try (Connection connection = DriverManager.getConnection(url, username, password);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setLong(1, aLong);
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
@@ -100,11 +113,16 @@ public class CerereDbRepository implements Repository<Long, Cerere> {
 
     @Override
     public Map<Long, Cerere> getEntities() {
-        return null;
+        Map<Long, Cerere> entities = new HashMap<>();
+
+        for(Cerere c: this.findAll())
+            entities.put(c.getId(),c);
+
+        return entities;
     }
 
     @Override
-    public Cerere setFriends(Cerere one) {
-        return null;
+    public Cerere getEntity(Cerere one) {
+        return one;
     }
 }

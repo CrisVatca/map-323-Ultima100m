@@ -8,6 +8,7 @@ import service.Service;
 
 import java.security.KeyException;
 import java.time.LocalDateTime;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -21,11 +22,46 @@ public class UI {
 
     private void saveUI() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Dati prenumele si numele utilizatorului de adaugat: ");
+        System.out.println("Dati prenumele utilizatorului de adaugat: ");
         String firstName = sc.nextLine();
+        System.out.println("Dati numele utilizatorului de adaugat: ");
         String lastName = sc.nextLine();
         this.service.addUser(firstName, lastName);
         System.out.println("Utilizatorul a fost adaugat!");
+    }
+
+    private void deleteUI() {
+        try {
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Dati id-ul utilizatorului de sters: ");
+            Long id = sc.nextLong();
+            this.service.deleteUser(id);
+            System.out.println("Utilizatorul a fost sters!");
+        } catch (IllegalArgumentException | NullPointerException e) {
+            System.out.println(e.getMessage());
+        }
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
+        }
+    }
+
+    private void updateUI(){
+        try{
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Dati id-ul utilizatorului de modificat: ");
+            Long id = Long.parseLong(sc.nextLine());
+            System.out.println("Dati noul prenume al utilizatorului: ");
+            String firstName = sc.nextLine();
+            System.out.println("Dati noul nume al utilizatorului: ");
+            String lastName = sc.nextLine();
+            this.service.updateUser(id,firstName, lastName);
+            System.out.println("Utilizatorul a fost modificat!");
+        } catch (IllegalArgumentException | NullPointerException e){
+            System.out.println(e.getMessage());
+        }
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
+        }
     }
 
     private void addFriendUI() {
@@ -39,10 +75,12 @@ public class UI {
             LocalDateTime datenow = LocalDateTime.now();
             this.service.addFriend(id1, id2, datenow);
             System.out.println("Prietenia a fost creata!");
-        } catch (IllegalArgumentException | NullPointerException | ValidationException e) {
+        } catch (IllegalArgumentException | NullPointerException | ValidationException | KeyException e) {
             System.out.println(e.getMessage());
         }
-
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
+        }
     }
 
     private void deleteFriendUI() {
@@ -58,17 +96,8 @@ public class UI {
         } catch (IllegalArgumentException | NullPointerException e) {
             System.out.println(e.getMessage());
         }
-    }
-
-    private void deleteUI() {
-        try {
-            Scanner sc = new Scanner(System.in);
-            System.out.println("Dati id-ul utilizatorului de sters: ");
-            Long id = sc.nextLong();
-            this.service.deleteUser(id);
-            System.out.println("Utilizatorul a fost sters!");
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
         }
     }
 
@@ -116,6 +145,9 @@ public class UI {
         catch (KeyException e) {
             e.printStackTrace();
         }
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
+        }
     }
 
     public void prieteniiUnuiUtilizatorUI(){
@@ -128,6 +160,9 @@ public class UI {
             System.out.println(u.getLastName()+" | "+u.getFirstName()+" | "+prieteniiUnuiUtilizator.get(u).toLocalDate());
         } catch (IllegalArgumentException | NullPointerException e){
             System.out.println(e.getMessage());
+        }
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
         }
     }
 
@@ -143,6 +178,9 @@ public class UI {
                 System.out.println(u.getLastName()+" | "+u.getFirstName()+" | "+prieteniiUnuiUtilizator.get(u).toLocalDate());
         } catch (IllegalArgumentException | NullPointerException e){
             System.out.println(e.getMessage());
+        }
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
         }
     }
 
@@ -169,6 +207,9 @@ public class UI {
         } catch (ValidationException ve){
             System.out.println(ve.getMessage());
         }
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
+        }
     }
 
     private void deleteMessageUI(){
@@ -178,8 +219,11 @@ public class UI {
             Long id = sc.nextLong();
             this.service.deleteMessage(id);
             System.out.println("Mesajul a fost sters!");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | NullPointerException e) {
             System.out.println(e.getMessage());
+        }
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
         }
     }
 
@@ -210,24 +254,28 @@ public class UI {
         } catch (ValidationException | NullPointerException e) {
             System.out.println(e.getMessage());
         }
+        catch (InputMismatchException e){
+            System.out.println("Format incorect al datelor!");
+        }
     }
 
     private void menuPrint() {
         System.out.println("Selectati optiunea: ");
         System.out.println("1. Adaugare utilizator");
         System.out.println("2. Stergere utilizator");
-        System.out.println("3. Afisare utilizatori");
-        System.out.println("4. Adaugare prieten");
-        System.out.println("5. Stergere prieten");
-        System.out.println("6. Adaugare mesaj");
-        System.out.println("7. Stergere mesaj");
-        System.out.println("8. Afisare mesaje");
-        System.out.println("9. Afisarea prieteniilor unui utilizator dat");
-        System.out.println("10. Afisarea prieteniilor unui utilizator dat create intr-o anumita luna");
-        System.out.println("11. Determinarea numarului de comunitati");
-        System.out.println("12. Determinarea celei mai sociabile comunitati");
-        System.out.println("13. Mesajele dintre doi utilizatori");
-        System.out.println("14. Trimiterea unei cereri de prietenie sau raspunderea la una");
+        System.out.println("3. Update utilizator");
+        System.out.println("4. Afisare utilizatori");
+        System.out.println("5. Adaugare prieten");
+        System.out.println("6. Stergere prieten");
+        System.out.println("7. Adaugare mesaj");
+        System.out.println("8. Stergere mesaj");
+        System.out.println("9. Afisare mesaje");
+        System.out.println("10. Afisarea prieteniilor unui utilizator dat");
+        System.out.println("11. Afisarea prieteniilor unui utilizator dat create intr-o anumita luna");
+        System.out.println("12. Determinarea numarului de comunitati");
+        System.out.println("13. Determinarea celei mai sociabile comunitati");
+        System.out.println("14. Mesajele dintre doi utilizatori");
+        System.out.println("15. Trimiterea unei cereri de prietenie sau raspunderea la una");
         System.out.println("0. Iesire");
         System.out.println("-----------------------");
     }
@@ -242,29 +290,31 @@ public class UI {
                 saveUI();
             } else if (option == 2) {
                 deleteUI();
-            } else if (option == 3) {
-                printAllUI();
+            } else if(option == 3){
+                updateUI();
             } else if (option == 4) {
-                addFriendUI();
+                printAllUI();
             } else if (option == 5) {
-                deleteFriendUI();
+                addFriendUI();
             } else if (option == 6) {
-                addMessageUI();
+                deleteFriendUI();
             } else if (option == 7) {
+                addMessageUI();
+            } else if (option == 8) {
                 deleteMessageUI();
-            } else if (option == 8){
+            } else if (option == 9){
                 allMessagesUI();
-            } else if (option == 9) {
+            } else if (option == 10) {
                 prieteniiUnuiUtilizatorUI();
-            } else if (option == 10){
+            } else if (option == 11){
                 prieteniiUnuiUtilizatorPerLunaUI();
-            } else if (option == 11) {
-                getNrOfConnectedComponentsUI();
             } else if (option == 12) {
-                getLargestConnectedComponentUI();
+                getNrOfConnectedComponentsUI();
             } else if (option == 13) {
-                conversatiiUI();
+                getLargestConnectedComponentUI();
             } else if (option == 14) {
+                conversatiiUI();
+            } else if (option == 15) {
                 invitatieUI();
             } else if (option == 0) {
                 loop = false;

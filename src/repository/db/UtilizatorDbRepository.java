@@ -2,7 +2,6 @@ package repository.db;
 
 import domain.Utilizator;
 import domain.validators.Validator;
-import jdk.jshell.execution.Util;
 import repository.Repository;
 
 import java.sql.*;
@@ -57,7 +56,7 @@ public class UtilizatorDbRepository implements Repository<Long, Utilizator> {
 
     @Override
     public Iterable<Utilizator> findAll() {
-        Set<Utilizator> users = new HashSet<>();
+        List<Utilizator> users = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement statement = connection.prepareStatement("SELECT * from utilizatori");
              ResultSet resultSet = statement.executeQuery()) {
@@ -69,31 +68,7 @@ public class UtilizatorDbRepository implements Repository<Long, Utilizator> {
                 Utilizator utilizator = new Utilizator(firstName, lastName);
                 utilizator.setId(id);
 
-/*
-                String sql2 = "SELECT idu FROM prietenie WHERE idp = ?";
-                PreparedStatement statement2 = connection.prepareStatement(sql2);
-                statement2.setLong(1,id);
-                ResultSet resultSet2 = statement2.executeQuery();
-
-                while (resultSet2.next()){
-                    Utilizator utilizator2 = findOne(resultSet2.getLong(1));
-                    utilizator2.setId(resultSet2.getLong(1));
-                    utilizator.makeFriend(utilizator2);
-                }
-
-                String sql3 = "SELECT idp FROM prietenie WHERE idu = ?";
-                PreparedStatement statement3 = connection.prepareStatement(sql3);
-                statement3.setLong(1,id);
-                ResultSet resultSet3 = statement3.executeQuery();
-
-                while (resultSet3.next()){
-                    Utilizator utilizator3 = findOne(resultSet3.getLong(1));
-                    utilizator3.setId(resultSet3.getLong(1));
-                    utilizator.makeFriend(utilizator3);
-                }
-*/
-
-                users.add(setFriends(utilizator));
+                users.add(getEntity(utilizator));
             }
             return users;
         } catch (SQLException e) {
@@ -103,7 +78,7 @@ public class UtilizatorDbRepository implements Repository<Long, Utilizator> {
     }
 
     @Override
-    public Utilizator setFriends(Utilizator utilizator) {
+    public Utilizator getEntity(Utilizator utilizator) {
         if(utilizator == null)
             return utilizator;
         Long id = utilizator.getId();
@@ -169,6 +144,17 @@ public class UtilizatorDbRepository implements Repository<Long, Utilizator> {
 
     @Override
     public Utilizator update(Utilizator entity) {
-        return null;
+        String sql = "update utilizatori set first_name = ?, last_name = ? where id = ?";
+
+        try (Connection connection = DriverManager.getConnection(url, username, password);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1,entity.getFirstName());
+            ps.setString(2,entity.getLastName());
+            ps.setLong(3,entity.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return entity;
     }
 }
