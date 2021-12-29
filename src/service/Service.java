@@ -38,6 +38,10 @@ public class Service{
     }
 
     public void deleteUser(Long id) {
+        try{
+        Utilizator u = this.repoUtilizatori.findOne(id);
+        if(u == null)
+            throw new NullPointerException("Utilizatorul nu poate fi sters deoarece nu exista!");
         this.repoUtilizatori.delete(id);
         List<Long> l = new ArrayList<>();
         for (Prietenie p : this.repoPrietenie.findAll()) {
@@ -51,6 +55,22 @@ public class Service{
         }
         for (long i : l)
             this.repoPrietenie.delete(i);
+        } catch (NullPointerException e){
+            throw e;
+        }
+    }
+
+    public void updateUser(Long id, String firstName, String lastName){
+        try{
+            Utilizator u = this.repoUtilizatori.findOne(id);
+            if(u == null)
+                throw new NullPointerException("Utilizatorul nu poate fi modificat deoarece acesta nu exista");
+            Utilizator user = new Utilizator(firstName, lastName);
+            user.setId(id);
+            this.repoUtilizatori.update(user);
+        } catch (NullPointerException e){
+            throw e;
+        }
     }
 
     public List<Utilizator> getUsers() {
@@ -87,8 +107,15 @@ public class Service{
     }
 
 
-    public void addFriend(Long id1, Long id2, LocalDateTime date) {
+    public void addFriend(Long id1, Long id2, LocalDateTime date) throws KeyException {
         try {
+            for(Prietenie prietenie: repoPrietenie.findAll())
+            {
+                if((prietenie.getIdP().equals(id1) && prietenie.getIdU().equals(id2)) || (prietenie.getIdP().equals(id2)
+                        && prietenie.getIdU().equals(id1))){
+                    throw new KeyException("Prietenia exista deja!");
+                }
+            }
             if (!Objects.equals(id1, id2)) {
                 Utilizator utilizator1 = this.repoUtilizatori.findOne(id1);
                 Utilizator utilizator2 = this.repoUtilizatori.findOne(id2);
@@ -97,14 +124,17 @@ public class Service{
                 Prietenie p = new Prietenie(id1,id2,date);
                 this.repoPrietenie.save(p);
             }
-        } catch (NullPointerException | ValidationException e) {
+        } catch (NullPointerException | ValidationException | KeyException e) {
             throw e;
         }
     }
 
     public void deleteFriend(Long id1, Long id2) {
+        try{
         Utilizator u1 = this.repoUtilizatori.findOne(id1);
         Utilizator u2 = this.repoUtilizatori.findOne(id2);
+        if(u1 == null || u2 == null)
+            throw new NullPointerException("Utilizatorul trebuie sa existe pentru a sterge o prietenie!");
         u1.deleteOneFriend(u2);
         u2.deleteOneFriend(u1);
         Iterable<Prietenie> prietenie = this.repoPrietenie.findAll();
@@ -118,6 +148,11 @@ public class Service{
             }
         if( id != 0L)
             this.repoPrietenie.delete(id);
+        else
+            throw new NullPointerException("Prietenia nu a fost gasita");
+        } catch (NullPointerException e){
+            throw e;
+        }
     }
 
     public void trimiteCerere(Long idFrom, Long idTo) throws KeyException {
@@ -222,27 +257,34 @@ public class Service{
 
 
     public Utilizator getById(Long x) {
-        return this.repoUtilizatori.setFriends(this.repoUtilizatori.findOne(x));
+        return this.repoUtilizatori.getEntity(this.repoUtilizatori.findOne(x));
     }
 
     public void addMessage(Long from, Long to, String message, LocalDateTime data, Long reply){
-
-        Message message1 = new Message(from,to,message,data,reply);
-        repoMessage.save(message1);
+        try{
+            Utilizator u1 = repoUtilizatori.findOne(from);
+            Utilizator u2 = repoUtilizatori.findOne(to);
+            if(u1 == null)
+                throw new NullPointerException("Mesajul nu poate fi adaugat deoarece utilizatorul de la from nu exista");
+            if(u2 == null)
+                throw new NullPointerException("Mesajul nu poate fi adaugat deoarece utilizatorul de la to nu exista");
+            Message message1 = new Message(from,to,message,data,reply);
+            repoMessage.save(message1);
+        } catch (NullPointerException e){
+            throw e;
+        }
     }
-    public void deleteMessage(Long id){
+    public void deleteMessage(Long id) throws NullPointerException {
+        Message m = repoMessage.findOne(id);
+        if(m == null)
+            throw new NullPointerException("Mesajul nu poate fi sters deoarece mesajul nu exista!");
         repoMessage.delete(id);
-    }
-
-    public void updateMessage(Long id, Long from, Long to, String messageText, LocalDateTime date, Long idReplay) {
-        Message message = new Message(from, to, messageText, date, idReplay);
-        message.setId(id);
-        this.repoMessage.update(message);
     }
 
     public Iterable<Message> getAllMessages() {
         return repoMessage.findAll();
     }
+
     public List<Message> conversatii(Utilizator u1,Utilizator u2){
         List<Message> list = new ArrayList<>();
         for(Message message:repoMessage.findAll())

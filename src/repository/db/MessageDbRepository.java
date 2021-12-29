@@ -1,5 +1,6 @@
 package repository.db;
 
+import domain.Cerere;
 import domain.Message;
 import domain.Prietenie;
 import domain.Utilizator;
@@ -73,10 +74,6 @@ public class MessageDbRepository implements Repository<Long, Message> {
                 LocalDateTime data = timestamp.toLocalDateTime();
 
                 Long reply = resultSet.getLong("reply");
-                /*Message reply1=null;
-                if(reply!=null){
-                    reply1=findOne(Long.parseLong(reply));
-                }*/
 
                 Message mess = new Message(from, to, message, data, reply);
                 mess.setId(id);
@@ -150,11 +147,16 @@ public class MessageDbRepository implements Repository<Long, Message> {
 
     @Override
     public Map<Long, Message> getEntities() {
-        return null;
+        Map<Long, Message> entities = new HashMap<>();
+
+        for(Message m: this.findAll())
+            entities.put(m.getId(),m);
+
+        return entities;
     }
 
     @Override
-    public Message setFriends(Message one) {
-        return null;
+    public Message getEntity(Message one) {
+        return one;
     }
 }
