@@ -24,8 +24,6 @@ public abstract class AbstractFileRepository<ID, E extends Entity<ID>> extends I
                 E e = extractEntity(Arrays.asList(line.split(";")));
                 super.save(e);
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

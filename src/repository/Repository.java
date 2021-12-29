@@ -64,5 +64,5 @@ public interface Repository<ID, E extends Entity<ID>> {
 
     Map<ID,E> getEntities();
 
-    E setFriends(E one);
+    E getEntity(E one);
 }

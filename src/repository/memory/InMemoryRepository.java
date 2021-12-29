@@ -80,7 +80,7 @@ public class InMemoryRepository<ID, E extends Entity<ID>> implements Repository<
     }
 
     @Override
-    public E setFriends(E entity){
+    public E getEntity(E entity){
         return entities.get(entity.getId());
     }
 
